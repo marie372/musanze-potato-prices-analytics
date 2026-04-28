@@ -1,31 +1,20 @@
 import pandas as pd
-import sqlalchemy
+import psycopg2
+from sqlalchemy import create_engine
 
-# 1. Define data source (replace with real URL or local CSV path)
-DATA_URL = "https://example.com/potato_prices.csv"  # placeholder
+# 1. Load raw data (replace with your actual CSV or API link)
+csv_url = "https://example.com/musanze_potato_prices.csv"
+df = pd.read_csv(csv_url)
 
-# 2. Load data into Pandas
-def fetch_data():
-    df = pd.read_csv(DATA_URL)
-    return df
+# 2. Inspect the data
+print("Preview of data:")
+print(df.head())
 
-# 3. Clean data (basic example)
-def clean_data(df):
-    df = df.dropna()  # remove missing values
-    df = df.drop_duplicates()  # remove duplicates
-    df['date'] = pd.to_datetime(df['date'])  # ensure date format
-    return df
+# 3. Connect to PostgreSQL
+# Adjust user, password, host, port, and database to your setup
+engine = create_engine("postgresql+psycopg2://user:password@localhost:5432/potato_db")
 
-# 4. Load into PostgreSQL
-def load_to_postgres(df):
-    # Update with your PostgreSQL credentials
-    engine = sqlalchemy.create_engine(
-        "postgresql://postgres:your_password@localhost:5432/potato_prices"
-    )
-    df.to_sql("raw_potato_prices", engine, if_exists="replace", index=False)
-    print("Data successfully loaded into raw_potato_prices table.")
+# 4. Write data into staging table
+df.to_sql("raw_potato_prices", engine, if_exists="replace", index=False)
 
-if __name__ == "__main__":
-    data = fetch_data()
-    data = clean_data(data)
-    load_to_postgres(data)
+print("Data successfully ingested into raw_potato_prices table!")
